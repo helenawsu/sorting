@@ -85,9 +85,11 @@ export async function run({ assetPaths, input = {}, environment, title, version 
   // };
   var trial = {
     type: htmlButtonResponse,
-    stimulus: function() {return orderToHtml(displayOrder)},
-    choices: ['1', '2', '3', 'exit'],
+    stimulus:"",
+    choices: function() {return displayOrder},
+    button_html: '<button id="clicked" class="jspsych-btn">%choice%</button>',
     prompt: "<p>select any two images to compare</p>",
+    css_classes: ['button'],
     on_finish: function() {
       console.log('ORDER IN USE' + displayOrder);
   }
@@ -142,3 +144,4 @@ timeline.push(loopNode);
   // if you handle results yourself, be it here or in `on_finish()`)
   return jsPsych;
 }
+
