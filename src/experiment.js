@@ -25,25 +25,17 @@ export async function run({ assetPaths, input = {}, environment, title, version 
   const timeline = [];
 
   // images display in html
-  const img1 = "<img src = 'assets/red.jpeg'/ height='200'>";
-  const img2 = "<img src = 'assets/orange.jpeg'/ height='200'>";
-  const img3 = "<img src = 'assets/yellow.jpeg'/ height='200'>"
+  let img1 = "<img src='assets/red.jpeg'/ height='200'>";
+  let img2 = "<img src='assets/orange.jpeg'/ height='200'>";
+  let img3 = "<img src='assets/yellow.jpeg'/ height='200'>";
   // the order of images on the screen
-  var displayOrder = [img1,img3,img2];
+  const originalImg = ["<img src='assets/red.jpeg'/ height='200'>","<img src='assets/yellow.jpeg'/ height='200'>","<img src='assets/orange.jpeg'/ height='200'>"];
+  let displayOrder = [img1,img3,img2]
   // map/array that maps images to their true order
   const trueOrderArray = [[img1, 0], [img2, 1], [img3, 2]];
   const trueOrder = new Map(trueOrderArray);
-  // helper boolean that determines when to swtich image order
-  var change = true;
-  
-  // helper method that concatentate displayImg to one single string
-  function orderToHtml(o) {
-    var string = "";
-    for (var i = 0; i < o.length; i++) {
-      string += o[i];
-    } 
-    return string;
-  }
+  // helper count that determines switch only when two images are selected
+  let times_clicked = -1;
 
   // return true only if the the selected images are in the wrong order
   function switchOrNot(imga, imgb) {
@@ -55,14 +47,25 @@ export async function run({ assetPaths, input = {}, environment, title, version 
       var bigger = imgb;
       var smaller = imga;
     }
-    if (displayOrder.indexOf(bigger) > displayOrder.indexOf(smaller)) {
-      return false;
-    }
-    else{
-      return true
-    }
-  }
+    console.log("what is imga", imga);
+    console.log("dont be null", trueOrder.get(imga));
+    console.log(bigger);
+    console.log(smaller);
 
+    console.log(displayOrder.indexOf(bigger));
+    console.log(displayOrder.indexOf(smaller));
+    let clean = removeSelection(displayOrder);
+    return !(clean.indexOf(bigger) > clean.indexOf(smaller)) ;
+  }
+  function removeSelection(imglist) {
+    let result = imglist.map((x) => x);;
+    for (let i = 0; i < imglist.length; i++){
+        if (imglist[i].includes(" id='selected'")) {
+          result[i] = result[i].replace(" id='selected'", "");
+        }  
+    }
+    return result;
+  }
   // Preload assets
   timeline.push({
     type: PreloadPlugin,
@@ -77,48 +80,53 @@ export async function run({ assetPaths, input = {}, environment, title, version 
   //   stimulus: "<p>Welcome to Sorting!<p/>",
   // });
 
-  // var trial1 = {
-  //   type: htmlButtonResponse,
-  //   stimulus: orderToHtml(order),
-  //   choices: ['1', '2', '3', 'exit'],
-  //   prompt: "<p>select any two images to compare, first time</p>"
-  // };
   var trial = {
     type: htmlButtonResponse,
     stimulus:"",
     choices: function() {return displayOrder},
-    button_html: '<button id="clicked" class="jspsych-btn">%choice%</button>',
+    button_html: '<button class="jspsych-btn">%choice%</button>',
     prompt: "<p>select any two images to compare</p>",
-    css_classes: ['button'],
     on_finish: function() {
-      console.log('ORDER IN USE' + displayOrder);
+      // console.log('ORDER IN USE' + displayOrder);
   }
   };
 
-  // timeline.push(trial1);
 
   // determine whether to switch images
   var refresh = {
     timeline: [trial],
     prompt: "<p>refresh node</p>",
     conditional_function: function(){
+      if (times_clicked%2 == 0 && times_clicked != 0) {
+        // console.log("resetting selection");
+        displayOrder = removeSelection(displayOrder);
+        // console.log(originalImg);
+      }
+      times_clicked++;
+      // console.log(times_clicked);
       console.log("entering refresh node");
       // get the data from the previous two rial, and check which key was pressed (which images are selected)
-      var data1 = jsPsych.data.get().last(1).values()[0];
-      var data2 = jsPsych.data.get().last(2).values()[0];
-      if (data2.response != null && change && switchOrNot(displayOrder[data1.response], displayOrder[data2.response])) {
-      // console.log("data2", data2);
+      let data1 = jsPsych.data.get().last(1).values()[0];
+      let data2 = jsPsych.data.get().last(2).values()[0];
+      if (data1.response != null) {
+      // console.log("whats this", displayOrder[data1.response]);
+      displayOrder[data1.response] = displayOrder[data1.response].replace("<img", "<img id='selected'");
+      // console.log("after highlighting", displayOrder[data1.response]);
+
+      }
+      let clean = removeSelection(displayOrder);
+      if (data2.response != null && times_clicked%2 == 0 && switchOrNot(clean[data1.response], clean[data2.response])) {
       console.log("before change", displayOrder);
-      var temp = displayOrder[data1.response];
+      let temp = displayOrder[data1.response];
       displayOrder[data1.response] = displayOrder[data2.response];
       displayOrder[data2.response] = temp;
-      console.log("after change", displayOrder);
       }
-      change = !change;
+      
       if(jsPsych.pluginAPI.compareKeys(String(data1.response), '3')){
           
           return false;
       }
+      console.log("currently displatyed, ", displayOrder);
       return true;
   }
   };
