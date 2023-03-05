@@ -9,8 +9,6 @@
 // You can import stylesheets (.scss or .css).
 import "../styles/main.scss";
 import htmlButtonResponse from '@jspsych/plugin-html-button-response';
-
-import FullscreenPlugin from "@jspsych/plugin-fullscreen";
 import HtmlKeyboardResponsePlugin from "@jspsych/plugin-html-keyboard-response";
 import PreloadPlugin from "@jspsych/plugin-preload";
 import { initJsPsych } from "jspsych";
@@ -25,12 +23,12 @@ export async function run({ assetPaths, input = {}, environment, title, version 
   const timeline = [];
 
   // images display in html
-  let img1 = "<img src='assets/blue.jpeg'/ height='150'>";
-  let img2 = "<img src='assets/cyan.jpeg'/ height='150'>";
-  let img3 = "<img src='assets/green.jpeg'/ height='150'>";
-  let img4 = "<img src='assets/magenta.jpeg'/ height='150'>";
-  let img5 = "<img src='assets/red.jpeg'/ height='150'>";
-  let img6 = "<img src='assets/yellow.jpeg'/ height='150'>";
+  let img1 = "<img src='assets/blue.jpg'/ height='150'>";
+  let img2 = "<img src='assets/cyan.jpg'/ height='150'>";
+  let img3 = "<img src='assets/green.jpg'/ height='150'>";
+  let img4 = "<img src='assets/magenta.jpg'/ height='150'>";
+  let img5 = "<img src='assets/red.jpg'/ height='150'>";
+  let img6 = "<img src='assets/yellow.jpg'/ height='150'>";
 
   // the order of images on the screen
   let displayOrder = [img1,img2,img3,img4,img5,img6]
@@ -103,7 +101,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
       return"<p>Welcome to Sorting!<p/>";
     }  });
 
-  var trial = {
+  var display_img = {
     type: htmlButtonResponse,
     stimulus:"",
     choices: function() {
@@ -118,7 +116,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
 
   // determine whether to switch images
   var refresh = {
-    timeline: [trial],
+    timeline: [display_img],
     prompt: "<p>refresh node</p>",
     conditional_function: function(){
       if (times_clicked%2 == 0 && times_clicked != 0) {
@@ -150,7 +148,7 @@ export async function run({ assetPaths, input = {}, environment, title, version 
       displayOrder[data1.response] = displayOrder[data2.response];
       displayOrder[data2.response] = temp;
       }
-      if(jsPsych.pluginAPI.compareKeys(String(data1.response), '6')){
+      if (jsPsych.pluginAPI.compareKeys(String(data1.response), String(num_img))){
           console.log(data1.response);
           return false;
       }
